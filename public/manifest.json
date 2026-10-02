@@ -1,8 +1,8 @@
 {
   "author": "Thermetrics",
   "appId": "6a993485103d27a1889631cd",
-  "version": "1.3.2",
-  "versionDescription": "Restored 'Mark Contacted' and 'Disqualify' actions on the Leads table, which this repo's initial commit never actually had (a gap only found after the fact) \u2014 they're back now. Mark Contacted shows for New-stage leads; Disqualify prompts for a reason (Leads source only \u2014 Conference Lead Form leads have no Disqualified Reason field) and works from any active stage.",
+  "version": "1.3.3",
+  "versionDescription": "Shortened action button labels so they fit on one line \u2014 'Mark Contacted' \u2192 'Contacted', 'Convert to Customer' \u2192 'Convert'. Also added the next step after Contacted: a 'Follow Up' button that advances a Contacted-stage lead to Qualified.",
   "config": {
     "fields": {
       "workflowId": {

@@ -20,23 +20,24 @@ interface Props {
 }
 
 export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
-  const [busy, setBusy] = useState<'customer' | 'opportunity' | 'contacted' | 'disqualify' | null>(null);
+  const [busy, setBusy] = useState<'customer' | 'opportunity' | 'advance' | 'disqualify' | null>(null);
 
   const notify = (text: string) => {
     hailer.ui.snackbar.open(text, 'OK', 3500).catch(() => {});
   };
 
   const contactedPhase = lead.sourceSystem === 'Conference' ? CLEAD_PHASE.contacted : LEADS_PHASE.contacted;
+  const qualifiedPhase = lead.sourceSystem === 'Conference' ? CLEAD_PHASE.qualified : LEADS_PHASE.qualified;
   const disqualifiedPhase = lead.sourceSystem === 'Conference' ? CLEAD_PHASE.disqualified : LEADS_PHASE.disqualified;
 
-  async function handleMarkContacted() {
-    setBusy('contacted');
+  async function handleAdvance(phaseId: string, resultLabel: string) {
+    setBusy('advance');
     try {
-      await hailer.activity.update([{ _id: lead.activityId, phaseId: contactedPhase }], {});
-      notify(`${lead.companyName || lead.name} marked Contacted.`);
+      await hailer.activity.update([{ _id: lead.activityId, phaseId }], {});
+      notify(`${lead.companyName || lead.name} marked ${resultLabel}.`);
       onDone();
     } catch (err) {
-      console.error('Mark Contacted failed:', err);
+      console.error('Advance stage failed:', err);
       notify("We couldn't update this lead. Please try again.");
     } finally {
       setBusy(null);
@@ -159,8 +160,15 @@ export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
   return (
     <HStack spacing={2} wrap="wrap">
       {lead.stage === 'New' && (
-        <Button size="xs" colorScheme="yellow" variant="outline" isLoading={busy === 'contacted'} onClick={handleMarkContacted}>
-          Mark Contacted
+        <Button size="xs" colorScheme="yellow" variant="outline" isLoading={busy === 'advance'}
+          onClick={() => handleAdvance(contactedPhase, 'Contacted')}>
+          Contacted
+        </Button>
+      )}
+      {lead.stage === 'Contacted' && (
+        <Button size="xs" colorScheme="yellow" variant="outline" isLoading={busy === 'advance'}
+          onClick={() => handleAdvance(qualifiedPhase, 'Qualified')}>
+          Follow Up
         </Button>
       )}
 
@@ -171,7 +179,7 @@ export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
           hasArrow
         >
           <Button size="xs" colorScheme="green" variant="outline" isLoading={busy === 'customer'} onClick={handleConvertToCustomer}>
-            Convert to Customer
+            Convert
           </Button>
         </Tooltip>
       )}
