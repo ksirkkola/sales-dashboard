@@ -1,8 +1,8 @@
 {
   "author": "Thermetrics",
   "appId": "6a993485103d27a1889631cd",
-  "version": "1.2.0",
-  "versionDescription": "Aki is now auto-added as a follower on every new Lead and Opportunity (all 3 creation paths: New Lead, New Opportunity, and Start Opportunity from a converted lead). Also reduced background auto-refresh load: was forcing a fresh insight recompute every 5 min flat; now 20 min + up to 5 min random jitter per cycle, to avoid stacking up with other dashboards and tripping the workspace API rate limit.",
+  "version": "1.2.1",
+  "versionDescription": "Overview now opens first by default on load, instead of Reference \u2014 Reference stays the first tab in the tab list, just no longer auto-selected.",
   "config": {
     "fields": {
       "workflowId": {

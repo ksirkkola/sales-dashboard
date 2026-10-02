@@ -38,6 +38,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  // Reference stays the first tab (visual convention shared with other apps), but Overview
+  // is what the user actually wants to see on open.
+  const [tabIndex, setTabIndex] = useState(1);
 
   useEffect(() => {
     void api.init();
@@ -116,7 +119,7 @@ export default function App() {
           ) : error ? (
             <Text color="red.500">Error loading data: {error}</Text>
           ) : (
-            <Tabs variant="hailer" isLazy>
+            <Tabs variant="hailer" isLazy index={tabIndex} onChange={setTabIndex}>
               <TabList>
                 <Tab><Icon marginRight="0.3em" as={HailerInfo} />Reference</Tab>
                 <Tab><Icon marginRight="0.3em" as={HailerFeed} />Overview</Tab>
