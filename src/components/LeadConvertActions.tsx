@@ -1,13 +1,17 @@
-import { Button, HStack, Text, Tooltip } from '@chakra-ui/react';
+import {
+  Button, HStack, Menu, MenuButton, MenuItem, MenuList, Text, Tooltip,
+} from '@chakra-ui/react';
 import { useState } from 'react';
 import type { HailerApi } from '@hailer/app-sdk';
 import {
-  CONTACT_FIELD, CONTACT_PHASE, CUSTOMER_FIELD, CUSTOMER_PHASE, LEADS_FIELD, LEADS_PHASE,
-  OPP_FIELD, OPP_PHASE, WORKFLOW_CONTACT_PERSONS, WORKFLOW_CUSTOMERS, WORKFLOW_OPPORTUNITY,
-  AKI_USER_ID,
+  CLEAD_PHASE, CONTACT_FIELD, CONTACT_PHASE, CUSTOMER_FIELD, CUSTOMER_PHASE, LEADS_FIELD,
+  LEADS_PHASE, OPP_FIELD, OPP_PHASE, WORKFLOW_CONTACT_PERSONS, WORKFLOW_CUSTOMERS,
+  WORKFLOW_OPPORTUNITY, AKI_USER_ID,
 } from '../constants/ids';
 import { CUSTOMER_COUNTRY_OPTIONS, CUSTOMER_INDUSTRY_OPTIONS, OPP_PRODUCT_FAMILY_OPTIONS } from '../constants/dropdownOptions';
 import type { LeadRow } from '../utils/leads';
+
+const DISQUALIFY_REASONS = ['Not a Fit', 'No Budget', 'Bad Timing', 'Unresponsive', 'Duplicate Lead', 'Other'];
 
 interface Props {
   hailer: HailerApi;
@@ -16,11 +20,45 @@ interface Props {
 }
 
 export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
-  const [busy, setBusy] = useState<'customer' | 'opportunity' | null>(null);
+  const [busy, setBusy] = useState<'customer' | 'opportunity' | 'contacted' | 'disqualify' | null>(null);
 
   const notify = (text: string) => {
     hailer.ui.snackbar.open(text, 'OK', 3500).catch(() => {});
   };
+
+  const contactedPhase = lead.sourceSystem === 'Conference' ? CLEAD_PHASE.contacted : LEADS_PHASE.contacted;
+  const disqualifiedPhase = lead.sourceSystem === 'Conference' ? CLEAD_PHASE.disqualified : LEADS_PHASE.disqualified;
+
+  async function handleMarkContacted() {
+    setBusy('contacted');
+    try {
+      await hailer.activity.update([{ _id: lead.activityId, phaseId: contactedPhase }], {});
+      notify(`${lead.companyName || lead.name} marked Contacted.`);
+      onDone();
+    } catch (err) {
+      console.error('Mark Contacted failed:', err);
+      notify("We couldn't update this lead. Please try again.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleDisqualify(reason?: string) {
+    setBusy('disqualify');
+    try {
+      const fields: Record<string, string> = {};
+      // Conference-sourced leads have no Disqualified Reason field on their workflow.
+      if (reason && lead.sourceSystem === 'Leads') fields[LEADS_FIELD.disqualifiedReason] = reason;
+      await hailer.activity.update([{ _id: lead.activityId, phaseId: disqualifiedPhase, fields }], {});
+      notify(`${lead.companyName || lead.name} disqualified.`);
+      onDone();
+    } catch (err) {
+      console.error('Disqualify failed:', err);
+      notify("We couldn't update this lead. Please try again.");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function handleConvertToCustomer() {
     setBusy('customer');
@@ -119,7 +157,13 @@ export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
   }
 
   return (
-    <HStack spacing={2}>
+    <HStack spacing={2} wrap="wrap">
+      {lead.stage === 'New' && (
+        <Button size="xs" colorScheme="yellow" variant="outline" isLoading={busy === 'contacted'} onClick={handleMarkContacted}>
+          Mark Contacted
+        </Button>
+      )}
+
       {!lead.convertedToCustomer && (
         <Tooltip
           isDisabled={lead.sourceSystem === 'Leads'}
@@ -134,6 +178,25 @@ export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
       {lead.convertedToCustomer && !lead.convertedToOpportunity && (
         <Button size="xs" colorScheme="blue" variant="outline" isLoading={busy === 'opportunity'} onClick={handleStartOpportunity}>
           Start Opportunity
+        </Button>
+      )}
+
+      {lead.sourceSystem === 'Leads' ? (
+        <Menu>
+          <MenuButton as={Button} size="xs" colorScheme="red" variant="outline" isLoading={busy === 'disqualify'}>
+            Disqualify
+          </MenuButton>
+          <MenuList>
+            {DISQUALIFY_REASONS.map(reason => (
+              <MenuItem key={reason} fontSize="sm" onClick={() => handleDisqualify(reason)}>
+                {reason}
+              </MenuItem>
+            ))}
+          </MenuList>
+        </Menu>
+      ) : (
+        <Button size="xs" colorScheme="red" variant="outline" isLoading={busy === 'disqualify'} onClick={() => handleDisqualify()}>
+          Disqualify
         </Button>
       )}
     </HStack>
