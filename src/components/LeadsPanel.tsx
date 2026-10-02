@@ -6,7 +6,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { HailerApi } from '@hailer/app-sdk';
 import type { LeadRow } from '../utils/leads';
-import { fmtEUR, fmtDateMs, fmtDateSec } from '../utils/insight';
+import { fmtEUR, fmtDateSec } from '../utils/insight';
 import { LEADS_PHASE, STAGE_COLOR, WORKFLOW_LEADS, AKI_USER_ID } from '../constants/ids';
 import { HailerPlus } from '../hailer/theme/icons/HailerPlus';
 import LeadConvertActions from './LeadConvertActions';
@@ -50,7 +50,6 @@ function LeadsTableHead({ sortField, sortDirection, onSort }: HeadProps) {
       <SortableTh field="rep" label="Rep" activeField={sortField} direction={sortDirection} onSort={onSort} />
       <SortableTh field="value" label="Est. Value" activeField={sortField} direction={sortDirection} onSort={onSort} isNumeric />
       <SortableTh field="followup" label="Next Follow-up" activeField={sortField} direction={sortDirection} onSort={onSort} />
-      <SortableTh field="created" label="Created" activeField={sortField} direction={sortDirection} onSort={onSort} />
       <Th>Action</Th>
     </Tr>
   );
@@ -83,7 +82,6 @@ function LeadsTableRows({ rows, hailer, onRefresh, rowHover }: RowsProps) {
               {isFollowupDue(l) && <Badge colorScheme="red">Due</Badge>}
             </Flex>
           </Td>
-          <Td fontSize="xs">{fmtDateMs(l.created)}</Td>
           <Td>
             <LeadConvertActions hailer={hailer} lead={l} onDone={onRefresh} />
           </Td>

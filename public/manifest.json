@@ -1,8 +1,8 @@
 {
   "author": "Thermetrics",
   "appId": "6a993485103d27a1889631cd",
-  "version": "1.3.3",
-  "versionDescription": "Shortened action button labels so they fit on one line \u2014 'Mark Contacted' \u2192 'Contacted', 'Convert to Customer' \u2192 'Convert'. Also added the next step after Contacted: a 'Follow Up' button that advances a Contacted-stage lead to Qualified.",
+  "version": "1.3.4",
+  "versionDescription": "Removed the 'Created' column from the Leads table to free up row width for the action buttons, which were still wrapping to a second line. Newest-first is still the default sort order under the hood, just no longer a visible/clickable column.",
   "config": {
     "fields": {
       "workflowId": {
