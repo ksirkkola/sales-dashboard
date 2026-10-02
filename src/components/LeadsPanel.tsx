@@ -9,6 +9,23 @@ import { fmtEUR, fmtDateMs, fmtDateSec } from '../utils/insight';
 import { LEADS_PHASE, STAGE_COLOR, WORKFLOW_LEADS, AKI_USER_ID } from '../constants/ids';
 import { HailerPlus } from '../hailer/theme/icons/HailerPlus';
 import LeadConvertActions from './LeadConvertActions';
+import SortableTh, { SortDirection } from './SortableTh';
+
+type SortField = 'company' | 'contact' | 'source' | 'stage' | 'rep' | 'value' | 'followup' | 'created';
+
+function sortValue(l: LeadRow, field: SortField): string | number {
+  switch (field) {
+    case 'company': return (l.companyName || l.name).toLowerCase();
+    case 'contact': return (l.contactName || '').toLowerCase();
+    case 'source': return l.leadSource.toLowerCase();
+    case 'stage': return l.stage.toLowerCase();
+    case 'rep': return (l.assignedToName || '').toLowerCase();
+    case 'value': return l.estimatedValue ?? -1;
+    case 'followup': return l.nextFollowupDate ?? -1;
+    case 'created': return l.created;
+    default: return '';
+  }
+}
 
 interface Props {
   hailer: HailerApi;
@@ -29,6 +46,17 @@ export default function LeadsPanel({ hailer, leads, onRefresh }: Props) {
   const [stageFilter, setStageFilter] = useState(ALL);
   const [repFilter, setRepFilter] = useState(ALL);
   const [creating, setCreating] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('created');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const handleSort = (field: SortField) => {
+    if (field === sortField) {
+      setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const cardBg = useColorModeValue('white', 'gray.700');
@@ -59,11 +87,22 @@ export default function LeadsPanel({ hailer, leads, onRefresh }: Props) {
     return [ALL, ...Array.from(set).sort()];
   }, [leads]);
 
-  const filtered = useMemo(() => leads.filter(l =>
-    (sourceFilter === ALL || l.sourceSystem === sourceFilter) &&
-    (stageFilter === ALL || l.stage === stageFilter) &&
-    (repFilter === ALL || (l.assignedToName || 'Unassigned') === repFilter)
-  ), [leads, sourceFilter, stageFilter, repFilter]);
+  const filtered = useMemo(() => {
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    return leads
+      .filter(l =>
+        (sourceFilter === ALL || l.sourceSystem === sourceFilter) &&
+        (stageFilter === ALL || l.stage === stageFilter) &&
+        (repFilter === ALL || (l.assignedToName || 'Unassigned') === repFilter)
+      )
+      .sort((a, b) => {
+        const av = sortValue(a, sortField);
+        const bv = sortValue(b, sortField);
+        if (av < bv) return -1 * dir;
+        if (av > bv) return 1 * dir;
+        return 0;
+      });
+  }, [leads, sourceFilter, stageFilter, repFilter, sortField, sortDirection]);
 
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -156,14 +195,14 @@ export default function LeadsPanel({ hailer, leads, onRefresh }: Props) {
           <Table variant="simple" size="sm">
             <Thead bg={theadBg}>
               <Tr>
-                <Th>Company</Th>
-                <Th>Contact</Th>
-                <Th>Source</Th>
-                <Th>Stage</Th>
-                <Th>Rep</Th>
-                <Th isNumeric>Est. Value</Th>
-                <Th>Next Follow-up</Th>
-                <Th>Created</Th>
+                <SortableTh field="company" label="Company" activeField={sortField} direction={sortDirection} onSort={handleSort} />
+                <SortableTh field="contact" label="Contact" activeField={sortField} direction={sortDirection} onSort={handleSort} />
+                <SortableTh field="source" label="Source" activeField={sortField} direction={sortDirection} onSort={handleSort} />
+                <SortableTh field="stage" label="Stage" activeField={sortField} direction={sortDirection} onSort={handleSort} />
+                <SortableTh field="rep" label="Rep" activeField={sortField} direction={sortDirection} onSort={handleSort} />
+                <SortableTh field="value" label="Est. Value" activeField={sortField} direction={sortDirection} onSort={handleSort} isNumeric />
+                <SortableTh field="followup" label="Next Follow-up" activeField={sortField} direction={sortDirection} onSort={handleSort} />
+                <SortableTh field="created" label="Created" activeField={sortField} direction={sortDirection} onSort={handleSort} />
                 <Th>Action</Th>
               </Tr>
             </Thead>
