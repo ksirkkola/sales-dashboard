@@ -1,4 +1,5 @@
 import {
+  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
   Badge, Box, Button, Flex, Heading, Select, SimpleGrid, Stat, StatHelpText, StatLabel, StatNumber,
   Table, Tbody, Td, Text, Th, Thead, Tr, useColorModeValue,
 } from '@chakra-ui/react';
@@ -31,6 +32,65 @@ interface Props {
   hailer: HailerApi;
   leads: LeadRow[];
   onRefresh: () => void;
+}
+
+interface HeadProps {
+  sortField: SortField;
+  sortDirection: SortDirection;
+  onSort: (field: SortField) => void;
+}
+
+function LeadsTableHead({ sortField, sortDirection, onSort }: HeadProps) {
+  return (
+    <Tr>
+      <SortableTh field="company" label="Company" activeField={sortField} direction={sortDirection} onSort={onSort} />
+      <SortableTh field="contact" label="Contact" activeField={sortField} direction={sortDirection} onSort={onSort} />
+      <SortableTh field="source" label="Source" activeField={sortField} direction={sortDirection} onSort={onSort} />
+      <SortableTh field="stage" label="Stage" activeField={sortField} direction={sortDirection} onSort={onSort} />
+      <SortableTh field="rep" label="Rep" activeField={sortField} direction={sortDirection} onSort={onSort} />
+      <SortableTh field="value" label="Est. Value" activeField={sortField} direction={sortDirection} onSort={onSort} isNumeric />
+      <SortableTh field="followup" label="Next Follow-up" activeField={sortField} direction={sortDirection} onSort={onSort} />
+      <SortableTh field="created" label="Created" activeField={sortField} direction={sortDirection} onSort={onSort} />
+      <Th>Action</Th>
+    </Tr>
+  );
+}
+
+interface RowsProps {
+  rows: LeadRow[];
+  hailer: HailerApi;
+  onRefresh: () => void;
+  rowHover: string;
+}
+
+function LeadsTableRows({ rows, hailer, onRefresh, rowHover }: RowsProps) {
+  return (
+    <>
+      {rows.map(l => (
+        <Tr key={l.activityId} _hover={{ bg: rowHover }}>
+          <Td fontWeight="medium" maxW="200px" isTruncated cursor="pointer"
+            onClick={() => hailer.ui.activity.open(l.activityId)}>
+            {l.companyName || l.name}
+          </Td>
+          <Td maxW="150px" isTruncated>{l.contactName || '—'}</Td>
+          <Td><Badge colorScheme={l.sourceSystem === 'Conference' ? 'teal' : 'blue'}>{l.leadSource}</Badge></Td>
+          <Td><Badge colorScheme={STAGE_COLOR[l.stage] || 'gray'}>{l.stage}</Badge></Td>
+          <Td fontSize="xs">{l.assignedToName}</Td>
+          <Td isNumeric>{fmtEUR(l.estimatedValue)}</Td>
+          <Td fontSize="xs">
+            <Flex align="center" gap={2}>
+              <Text>{fmtDateSec(l.nextFollowupDate)}</Text>
+              {isFollowupDue(l) && <Badge colorScheme="red">Due</Badge>}
+            </Flex>
+          </Td>
+          <Td fontSize="xs">{fmtDateMs(l.created)}</Td>
+          <Td>
+            <LeadConvertActions hailer={hailer} lead={l} onDone={onRefresh} />
+          </Td>
+        </Tr>
+      ))}
+    </>
+  );
 }
 
 const STAGES = ['New', 'Contacted', 'Qualified', 'Converted', 'Disqualified'];
@@ -111,6 +171,15 @@ export default function LeadsPanel({ hailer, leads, onRefresh }: Props) {
     return counts;
   }, [leads]);
 
+  const activeRows = useMemo(
+    () => filtered.filter(l => l.stage !== 'Converted' && l.stage !== 'Disqualified'),
+    [filtered],
+  );
+  const terminalRows = useMemo(
+    () => filtered.filter(l => l.stage === 'Converted' || l.stage === 'Disqualified'),
+    [filtered],
+  );
+
   const activeCount = leads.filter(l => l.stage !== 'Disqualified' && l.stage !== 'Converted').length;
   const convertedCount = stageCounts.Converted || 0;
   const disqualifiedCount = stageCounts.Disqualified || 0;
@@ -188,51 +257,50 @@ export default function LeadsPanel({ hailer, leads, onRefresh }: Props) {
         </Select>
       </Flex>
 
-      {filtered.length === 0 ? (
+      {activeRows.length === 0 && terminalRows.length === 0 ? (
         <Text color="gray.500">No leads match these filters.</Text>
       ) : (
-        <Box overflowX="auto" border="1px" borderColor={borderColor} borderRadius="md">
-          <Table variant="simple" size="sm">
-            <Thead bg={theadBg}>
-              <Tr>
-                <SortableTh field="company" label="Company" activeField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableTh field="contact" label="Contact" activeField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableTh field="source" label="Source" activeField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableTh field="stage" label="Stage" activeField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableTh field="rep" label="Rep" activeField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableTh field="value" label="Est. Value" activeField={sortField} direction={sortDirection} onSort={handleSort} isNumeric />
-                <SortableTh field="followup" label="Next Follow-up" activeField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableTh field="created" label="Created" activeField={sortField} direction={sortDirection} onSort={handleSort} />
-                <Th>Action</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {filtered.map(l => (
-                <Tr key={l.activityId} _hover={{ bg: rowHover }}>
-                  <Td fontWeight="medium" maxW="200px" isTruncated cursor="pointer"
-                    onClick={() => hailer.ui.activity.open(l.activityId)}>
-                    {l.companyName || l.name}
-                  </Td>
-                  <Td maxW="150px" isTruncated>{l.contactName || '—'}</Td>
-                  <Td><Badge colorScheme={l.sourceSystem === 'Conference' ? 'teal' : 'blue'}>{l.leadSource}</Badge></Td>
-                  <Td><Badge colorScheme={STAGE_COLOR[l.stage] || 'gray'}>{l.stage}</Badge></Td>
-                  <Td fontSize="xs">{l.assignedToName}</Td>
-                  <Td isNumeric>{fmtEUR(l.estimatedValue)}</Td>
-                  <Td fontSize="xs">
-                    <Flex align="center" gap={2}>
-                      <Text>{fmtDateSec(l.nextFollowupDate)}</Text>
-                      {isFollowupDue(l) && <Badge colorScheme="red">Due</Badge>}
-                    </Flex>
-                  </Td>
-                  <Td fontSize="xs">{fmtDateMs(l.created)}</Td>
-                  <Td>
-                    <LeadConvertActions hailer={hailer} lead={l} onDone={onRefresh} />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
+        <>
+          {activeRows.length === 0 ? (
+            <Text color="gray.500" mb={4}>No active leads match these filters.</Text>
+          ) : (
+            <Box overflowX="auto" border="1px" borderColor={borderColor} borderRadius="md" mb={terminalRows.length > 0 ? 4 : 0}>
+              <Table variant="simple" size="sm">
+                <Thead bg={theadBg}>
+                  <LeadsTableHead sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                </Thead>
+                <Tbody>
+                  <LeadsTableRows rows={activeRows} hailer={hailer} onRefresh={onRefresh} rowHover={rowHover} />
+                </Tbody>
+              </Table>
+            </Box>
+          )}
+
+          {terminalRows.length > 0 && (
+            <Accordion allowToggle>
+              <AccordionItem border="1px" borderColor={borderColor} borderRadius="md">
+                <AccordionButton>
+                  <Box flex="1" textAlign="left" fontSize="sm" fontWeight="medium">
+                    Converted / Disqualified ({terminalRows.length})
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+                <AccordionPanel pb={4}>
+                  <Box overflowX="auto" border="1px" borderColor={borderColor} borderRadius="md">
+                    <Table variant="simple" size="sm">
+                      <Thead bg={theadBg}>
+                        <LeadsTableHead sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                      </Thead>
+                      <Tbody>
+                        <LeadsTableRows rows={terminalRows} hailer={hailer} onRefresh={onRefresh} rowHover={rowHover} />
+                      </Tbody>
+                    </Table>
+                  </Box>
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+          )}
+        </>
       )}
     </Box>
   );

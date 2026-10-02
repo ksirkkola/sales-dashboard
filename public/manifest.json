@@ -1,8 +1,8 @@
 {
   "author": "Thermetrics",
   "appId": "6a993485103d27a1889631cd",
-  "version": "1.3.0",
-  "versionDescription": "Leads table is now sortable \u2014 click any column header (Company, Contact, Source, Stage, Rep, Est. Value, Next Follow-up, Created) to sort by it, click again to reverse direction. Defaults to newest-created first, same as before.",
+  "version": "1.3.1",
+  "versionDescription": "Converted and Disqualified leads no longer clutter the main Leads table \u2014 they're tucked into a collapsed 'Converted / Disqualified' section at the bottom instead, same sorting still applies inside it.",
   "config": {
     "fields": {
       "workflowId": {
