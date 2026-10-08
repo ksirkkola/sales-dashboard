@@ -1,8 +1,8 @@
 {
   "author": "Thermetrics",
   "appId": "6a993485103d27a1889631cd",
-  "version": "1.3.5",
-  "versionDescription": "Every activity created from this app now adds all employees (except Robert Broman, Nico Larsen and the bot) to its discussion.",
+  "version": "1.3.6",
+  "versionDescription": "New leads created from the Leads tab are now shared only with Kristin and Aki, not the whole team. Other records created here still add all employees.",
   "config": {
     "fields": {
       "workflowId": {

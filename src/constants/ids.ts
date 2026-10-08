@@ -183,3 +183,6 @@ export const OPP_PHASE_COLOR: Record<string, string> = {
 // Aki gets auto-added as a follower on every new Lead and Opportunity so he
 // sees all pipeline activity, not just the ones he personally creates.
 export const AKI_USER_ID = '6a06d350e50920dc4947f463';
+export const KRISTIN_USER_ID = '6a04172f78962d5eb468849f';
+/** Leads are only shared with these two people, not the whole team. */
+export const LEAD_FOLLOWER_IDS = [KRISTIN_USER_ID, AKI_USER_ID];

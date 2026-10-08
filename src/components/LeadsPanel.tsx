@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import type { HailerApi } from '@hailer/app-sdk';
 import type { LeadRow } from '../utils/leads';
 import { fmtEUR, fmtDateSec } from '../utils/insight';
-import { LEADS_PHASE, STAGE_COLOR, WORKFLOW_LEADS } from '../constants/ids';
+import { LEADS_PHASE, STAGE_COLOR, WORKFLOW_LEADS, LEAD_FOLLOWER_IDS } from '../constants/ids';
 import { HailerPlus } from '../hailer/theme/icons/HailerPlus';
 import LeadConvertActions from './LeadConvertActions';
 import SortableTh, { SortDirection } from './SortableTh';
@@ -125,8 +125,8 @@ export default function LeadsPanel({ hailer, leads, onRefresh }: Props) {
   async function handleNewLead() {
     setCreating(true);
     try {
-      // All employees join the lead's discussion (the native dialog can't take followerIds).
-      const created = await createActivityViaDialog(hailer, WORKFLOW_LEADS, { phaseId: LEADS_PHASE.new });
+      // Leads go to Kristin and Aki only (the native dialog can't take followerIds).
+      const created = await createActivityViaDialog(hailer, WORKFLOW_LEADS, { phaseId: LEADS_PHASE.new }, LEAD_FOLLOWER_IDS);
       if (created) {
         hailer.ui.snackbar.open('Lead created.', 'OK', 3000).catch(() => {});
         onRefresh();
