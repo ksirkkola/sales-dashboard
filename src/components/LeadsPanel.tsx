@@ -7,10 +7,11 @@ import { useMemo, useState } from 'react';
 import type { HailerApi } from '@hailer/app-sdk';
 import type { LeadRow } from '../utils/leads';
 import { fmtEUR, fmtDateSec } from '../utils/insight';
-import { LEADS_PHASE, STAGE_COLOR, WORKFLOW_LEADS, AKI_USER_ID } from '../constants/ids';
+import { LEADS_PHASE, STAGE_COLOR, WORKFLOW_LEADS } from '../constants/ids';
 import { HailerPlus } from '../hailer/theme/icons/HailerPlus';
 import LeadConvertActions from './LeadConvertActions';
 import SortableTh, { SortDirection } from './SortableTh';
+import { createActivityViaDialog } from '../hailer/employees';
 
 type SortField = 'company' | 'contact' | 'source' | 'stage' | 'rep' | 'value' | 'followup' | 'created';
 
@@ -124,11 +125,9 @@ export default function LeadsPanel({ hailer, leads, onRefresh }: Props) {
   async function handleNewLead() {
     setCreating(true);
     try {
-      const created = await hailer.ui.activity.create(WORKFLOW_LEADS, { phaseId: LEADS_PHASE.new });
+      // All employees join the lead's discussion (the native dialog can't take followerIds).
+      const created = await createActivityViaDialog(hailer, WORKFLOW_LEADS, { phaseId: LEADS_PHASE.new });
       if (created) {
-        // The native creation dialog doesn't take followerIds — add Aki as a
-        // follower right after, so he's on every lead, not just ones he makes.
-        hailer.activity.update([{ _id: created._id }], { followers: { [AKI_USER_ID]: true } }).catch(() => {});
         hailer.ui.snackbar.open('Lead created.', 'OK', 3000).catch(() => {});
         onRefresh();
       }

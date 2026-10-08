@@ -6,10 +6,11 @@ import type { HailerApi } from '@hailer/app-sdk';
 import {
   CLEAD_PHASE, CONTACT_FIELD, CONTACT_PHASE, CUSTOMER_FIELD, CUSTOMER_PHASE, LEADS_FIELD,
   LEADS_PHASE, OPP_FIELD, OPP_PHASE, WORKFLOW_CONTACT_PERSONS, WORKFLOW_CUSTOMERS,
-  WORKFLOW_OPPORTUNITY, AKI_USER_ID,
+  WORKFLOW_OPPORTUNITY,
 } from '../constants/ids';
 import { CUSTOMER_COUNTRY_OPTIONS, CUSTOMER_INDUSTRY_OPTIONS, OPP_PRODUCT_FAMILY_OPTIONS } from '../constants/dropdownOptions';
 import type { LeadRow } from '../utils/leads';
+import { createActivityViaDialog } from '../hailer/employees';
 
 const DISQUALIFY_REASONS = ['Not a Fit', 'No Budget', 'Bad Timing', 'Unresponsive', 'Duplicate Lead', 'Other'];
 
@@ -69,7 +70,7 @@ export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
       if (lead.country && CUSTOMER_COUNTRY_OPTIONS.has(lead.country)) fields[CUSTOMER_FIELD.companyCountry] = lead.country;
       if (lead.assignedToId) fields[CUSTOMER_FIELD.accountManager] = lead.assignedToId;
 
-      const customer = await hailer.ui.activity.create(WORKFLOW_CUSTOMERS, {
+      const customer = await createActivityViaDialog(hailer, WORKFLOW_CUSTOMERS, {
         name: lead.companyName || lead.name,
         phaseId: CUSTOMER_PHASE.all,
         fields,
@@ -89,7 +90,7 @@ export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
         if (lead.phone) contactFields[CONTACT_FIELD.phone] = lead.phone;
         if (lead.title) contactFields[CONTACT_FIELD.title] = lead.title;
 
-        await hailer.ui.activity.create(WORKFLOW_CONTACT_PERSONS, {
+        await createActivityViaDialog(hailer, WORKFLOW_CONTACT_PERSONS, {
           name: lead.contactName,
           phaseId: CONTACT_PHASE.all,
           fields: contactFields,
@@ -122,16 +123,13 @@ export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
         fields[OPP_FIELD.productFamily] = lead.productInterest;
       }
 
-      const opp = await hailer.ui.activity.create(WORKFLOW_OPPORTUNITY, {
+      const opp = await createActivityViaDialog(hailer, WORKFLOW_OPPORTUNITY, {
         name: `${lead.companyName || lead.name} - ${lead.productInterest || 'New Opportunity'}`,
         phaseId: OPP_PHASE.discovery,
         fields,
       });
 
       if (!opp) { setBusy(null); return; }
-
-      // Native dialog doesn't take followerIds — add Aki right after creation.
-      hailer.activity.update([{ _id: opp._id }], { followers: { [AKI_USER_ID]: true } }).catch(() => {});
 
       if (lead.sourceSystem === 'Leads') {
         await hailer.activity.update([

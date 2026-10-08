@@ -1,8 +1,8 @@
 {
   "author": "Thermetrics",
   "appId": "6a993485103d27a1889631cd",
-  "version": "1.3.4",
-  "versionDescription": "Removed the 'Created' column from the Leads table to free up row width for the action buttons, which were still wrapping to a second line. Newest-first is still the default sort order under the hood, just no longer a visible/clickable column.",
+  "version": "1.3.5",
+  "versionDescription": "Every activity created from this app now adds all employees (except Robert Broman, Nico Larsen and the bot) to its discussion.",
   "config": {
     "fields": {
       "workflowId": {

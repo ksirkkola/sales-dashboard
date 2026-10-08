@@ -11,11 +11,11 @@ import { fmtEUR, fmtDateSec, num } from '../utils/insight';
 import {
   OPP_FIELD, OPP_PHASE, OPP_PHASE_COLOR, WORKFLOW_OPPORTUNITY,
   WORKFLOW_CUSTOMERS, WORKFLOW_CONTACT_PERSONS, CUSTOMER_PHASE, CONTACT_PHASE,
-  AKI_USER_ID,
 } from '../constants/ids';
 import { useApp } from '../hailer/use-app';
 import SearchableSelect, { SelectOption } from './SearchableSelect';
 import { PRODUCT_FAMILIES, getProductNamesForFamily } from '../utils/products';
+import { createActivities } from '../hailer/employees';
 
 const PRODUCT_CATEGORIZATIONS = ['Standard/Future Standard', 'Semi-Custom', 'Custom'];
 const STARTUP_TYPES = ['Onsite Startup', 'Remote Startup', 'Agent Startup', 'No Startup'];
@@ -131,7 +131,7 @@ export default function PipelinePanel({ hailer, opportunities, onRefresh }: Prop
       // own validation error ("must be a string"), not { _id, name }. Initial
       // Lead Contact is a date field and needs Unix milliseconds, not a
       // "YYYY-MM-DD" string.
-      const created = await hailer.activity.create(WORKFLOW_OPPORTUNITY, [{
+      const created = await createActivities(hailer, WORKFLOW_OPPORTUNITY, [{
         name: newOpp.name,
         phaseId: OPP_PHASE.discovery,
         fields: {
@@ -142,7 +142,7 @@ export default function PipelinePanel({ hailer, opportunities, onRefresh }: Prop
           [OPP_FIELD.startupType]: newOpp.startupType,
           [OPP_FIELD.initialLeadContact]: new Date(newOpp.initialLeadContact).getTime(),
         },
-      }], { followerIds: [AKI_USER_ID] });
+      }]);
       if (created?.[0]?._id) {
         hailer.ui.snackbar.open('Opportunity created.', 'OK', 3000).catch(() => {});
         onNewOppClose();

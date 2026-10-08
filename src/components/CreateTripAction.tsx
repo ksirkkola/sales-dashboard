@@ -5,6 +5,7 @@ import {
   RENTALS_FIELD_DELIVERY_TRIP, TRIPS_IHS_FIELD, TRIPS_IHS_PHASE_TRIAGE, WORKFLOW_TRIPS_IHS,
 } from '../constants/ids';
 import type { RentalRow } from '../utils/rentals';
+import { createActivityViaDialog } from '../hailer/employees';
 
 interface Props {
   hailer: HailerApi;
@@ -29,7 +30,7 @@ export default function CreateTripAction({ hailer, rental, onDone }: Props) {
       };
       if (rental.accountId) fields[TRIPS_IHS_FIELD.customer] = rental.accountId;
 
-      const trip = await hailer.ui.activity.create(WORKFLOW_TRIPS_IHS, {
+      const trip = await createActivityViaDialog(hailer, WORKFLOW_TRIPS_IHS, {
         name: `${rental.accountName || rental.rentalName} - ${rental.unitName || ''} - Training/Delivery`.trim(),
         phaseId: TRIPS_IHS_PHASE_TRIAGE,
         fields,
