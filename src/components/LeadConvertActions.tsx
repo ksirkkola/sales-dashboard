@@ -6,7 +6,7 @@ import type { HailerApi } from '@hailer/app-sdk';
 import {
   CLEAD_PHASE, CONTACT_FIELD, CONTACT_PHASE, CUSTOMER_FIELD, CUSTOMER_PHASE, LEADS_FIELD,
   LEADS_PHASE, OPP_FIELD, OPP_PHASE, WORKFLOW_CONTACT_PERSONS, WORKFLOW_CUSTOMERS,
-  WORKFLOW_OPPORTUNITY,
+  WORKFLOW_OPPORTUNITY, OPPORTUNITY_FOLLOWER_IDS,
 } from '../constants/ids';
 import { CUSTOMER_COUNTRY_OPTIONS, CUSTOMER_INDUSTRY_OPTIONS, OPP_PRODUCT_FAMILY_OPTIONS } from '../constants/dropdownOptions';
 import type { LeadRow } from '../utils/leads';
@@ -127,7 +127,7 @@ export default function LeadConvertActions({ hailer, lead, onDone }: Props) {
         name: `${lead.companyName || lead.name} - ${lead.productInterest || 'New Opportunity'}`,
         phaseId: OPP_PHASE.discovery,
         fields,
-      });
+      }, OPPORTUNITY_FOLLOWER_IDS);
 
       if (!opp) { setBusy(null); return; }
 

@@ -1,8 +1,8 @@
 {
   "author": "Thermetrics",
   "appId": "6a993485103d27a1889631cd",
-  "version": "1.3.6",
-  "versionDescription": "New leads created from the Leads tab are now shared only with Kristin and Aki, not the whole team. Other records created here still add all employees.",
+  "version": "1.3.7",
+  "versionDescription": "New opportunities (from the Pipeline tab and from converting a lead) are now shared only with Kristin and Aki, not the whole team.",
   "config": {
     "fields": {
       "workflowId": {

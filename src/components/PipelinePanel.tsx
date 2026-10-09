@@ -9,7 +9,7 @@ import type { HailerApi } from '@hailer/app-sdk';
 import type { OpportunityRow } from '../utils/opportunities';
 import { fmtEUR, fmtDateSec, num } from '../utils/insight';
 import {
-  OPP_FIELD, OPP_PHASE, OPP_PHASE_COLOR, WORKFLOW_OPPORTUNITY,
+  OPP_FIELD, OPP_PHASE, OPP_PHASE_COLOR, WORKFLOW_OPPORTUNITY, OPPORTUNITY_FOLLOWER_IDS,
   WORKFLOW_CUSTOMERS, WORKFLOW_CONTACT_PERSONS, CUSTOMER_PHASE, CONTACT_PHASE,
 } from '../constants/ids';
 import { useApp } from '../hailer/use-app';
@@ -142,7 +142,7 @@ export default function PipelinePanel({ hailer, opportunities, onRefresh }: Prop
           [OPP_FIELD.startupType]: newOpp.startupType,
           [OPP_FIELD.initialLeadContact]: new Date(newOpp.initialLeadContact).getTime(),
         },
-      }]);
+      }], {}, OPPORTUNITY_FOLLOWER_IDS);
       if (created?.[0]?._id) {
         hailer.ui.snackbar.open('Opportunity created.', 'OK', 3000).catch(() => {});
         onNewOppClose();

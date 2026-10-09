@@ -186,3 +186,5 @@ export const AKI_USER_ID = '6a06d350e50920dc4947f463';
 export const KRISTIN_USER_ID = '6a04172f78962d5eb468849f';
 /** Leads are only shared with these two people, not the whole team. */
 export const LEAD_FOLLOWER_IDS = [KRISTIN_USER_ID, AKI_USER_ID];
+/** Opportunities are shared only with these two people. */
+export const OPPORTUNITY_FOLLOWER_IDS = [KRISTIN_USER_ID, AKI_USER_ID];
